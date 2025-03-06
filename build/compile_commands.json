@@ -1,20 +1,20 @@
 [
 {
-  "directory": "C:/Users/YABOIMARSH/Desktop/UNI/COSC363ASS/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -g -o CMakeFiles\\Cannon.out.dir\\Cannon.cpp.obj -c C:\\Users\\YABOIMARSH\\Desktop\\UNI\\COSC363ASS\\Cannon.cpp",
-  "file": "C:\\Users\\YABOIMARSH\\Desktop\\UNI\\COSC363ASS\\Cannon.cpp",
-  "output": "CMakeFiles\\Cannon.out.dir\\Cannon.cpp.obj"
+  "directory": "C:/Users/marsh/OneDrive/Desktop/uni docs/COSC363ASS/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe   -g -o CMakeFiles\\Cannon.out.dir\\Cannon.cpp.obj -c \"C:\\Users\\marsh\\OneDrive\\Desktop\\uni docs\\COSC363ASS\\Cannon.cpp\"",
+  "file": "C:/Users/marsh/OneDrive/Desktop/uni docs/COSC363ASS/Cannon.cpp",
+  "output": "CMakeFiles/Cannon.out.dir/Cannon.cpp.obj"
 },
 {
-  "directory": "C:/Users/YABOIMARSH/Desktop/UNI/COSC363ASS/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -g -o CMakeFiles\\Humanoid.out.dir\\Humanoid.cpp.obj -c C:\\Users\\YABOIMARSH\\Desktop\\UNI\\COSC363ASS\\Humanoid.cpp",
-  "file": "C:\\Users\\YABOIMARSH\\Desktop\\UNI\\COSC363ASS\\Humanoid.cpp",
-  "output": "CMakeFiles\\Humanoid.out.dir\\Humanoid.cpp.obj"
+  "directory": "C:/Users/marsh/OneDrive/Desktop/uni docs/COSC363ASS/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe   -g -o CMakeFiles\\Humanoid.out.dir\\Humanoid.cpp.obj -c \"C:\\Users\\marsh\\OneDrive\\Desktop\\uni docs\\COSC363ASS\\Humanoid.cpp\"",
+  "file": "C:/Users/marsh/OneDrive/Desktop/uni docs/COSC363ASS/Humanoid.cpp",
+  "output": "CMakeFiles/Humanoid.out.dir/Humanoid.cpp.obj"
 },
 {
-  "directory": "C:/Users/YABOIMARSH/Desktop/UNI/COSC363ASS/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -g -o CMakeFiles\\Factory.out.dir\\Factory.cpp.obj -c C:\\Users\\YABOIMARSH\\Desktop\\UNI\\COSC363ASS\\Factory.cpp",
-  "file": "C:\\Users\\YABOIMARSH\\Desktop\\UNI\\COSC363ASS\\Factory.cpp",
-  "output": "CMakeFiles\\Factory.out.dir\\Factory.cpp.obj"
+  "directory": "C:/Users/marsh/OneDrive/Desktop/uni docs/COSC363ASS/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe   -g -o CMakeFiles\\Factory.out.dir\\Factory.cpp.obj -c \"C:\\Users\\marsh\\OneDrive\\Desktop\\uni docs\\COSC363ASS\\Factory.cpp\"",
+  "file": "C:/Users/marsh/OneDrive/Desktop/uni docs/COSC363ASS/Factory.cpp",
+  "output": "CMakeFiles/Factory.out.dir/Factory.cpp.obj"
 }
 ]
