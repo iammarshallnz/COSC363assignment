@@ -11,9 +11,12 @@
 #include <cmath>
 #include <algorithm>
 #include <math.h>
+#include "loadTGA.h"
 using namespace std;
 
 //-- Globals ---------------------------------------------------------------
+
+GLuint txId[1];	//Texture ids
 
 // mesh data
 float *x, *y, *z;            // vertex coordinates
@@ -147,7 +150,7 @@ void normal(int indx)
     glNormal3f(nx, ny, nz);
 }
 
-//-- Function to compute the normal vector of a triangle with index tindx --
+
 void drawConveyer()
 {
     glColor3f(1, 0.5, 0.5);
@@ -207,6 +210,192 @@ void drawModel()
     }
     glPopMatrix();
 }
+
+void loadTexture() {
+	glGenTextures(1, txId); // Create 2 texture ids
+
+	
+
+	glBindTexture(GL_TEXTURE_2D, txId[0]);	//Use this texture
+	loadTGA("../Floor.tga");
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	//Set texture parameters
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
+	
+	glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+}
+void strip()
+{
+        // TODO, TEXTURE THE STIP 
+    glColor3f(0.5, 0.5, 1);
+    glPushMatrix();
+    glTranslatef(-10, 0, -0.5); // move half in 
+    glBegin(GL_TRIANGLE_STRIP);
+    glBindTexture(GL_TEXTURE_2D, txId[0]);
+
+    for (int i = 0; i < 10; i++)
+    {   
+        
+        glVertex3f(i, 0, 1);
+        
+        glVertex3f(i, 0, 0);
+        
+        
+    }
+    for (int x = 0; x < 21; x++)
+    {   
+        // right side
+        
+        glVertex3f(10 + 0.1 * sin((x * 0.05) * M_PI), 0.1 *cos((x * 0.05) * M_PI) - 0.1, 1);
+        glVertex3f(10 + 0.1 * sin((x * 0.05) * M_PI), 0.1 *cos((x * 0.05) * M_PI) - 0.1, 0);
+        // Radius is 1, diam is 2 
+    }
+    for (int i = 0; i < 10; i++)
+    {
+        glVertex3f(10 - i, -0.2, 1);
+        glVertex3f(10 - i, -0.2, 0);
+    }
+
+    for (int x = 0; x < 21; x++){   
+        // left side
+        
+        glVertex3f(-0.1 * sin((x * 0.05) * M_PI), -0.1 *cos((x * 0.05) * M_PI) - 0.1, 1);
+        glVertex3f(-0.1 * sin((x * 0.05) * M_PI), -0.1 *cos((x * 0.05) * M_PI) - 0.1, 0);
+        // Radius is 1, diam is 2 
+    }
+    
+    glEnd();
+    glPopMatrix();
+    
+}
+
+void smtMachine(){
+    
+    glPushMatrix(); // global
+    
+    glTranslatef(0, 1, 0);
+
+    //left rail
+    glPushMatrix(); 
+    glColor3f(0.3, 0.7, 0.5);
+    glTranslatef(0, 1, 0);
+    glScalef(1, 0.5, 4.5);
+    if (wireframe) glutWireCube(0.5);
+    else glutSolidCube(0.5);
+    glPopMatrix();
+    //left support 
+    glPushMatrix(); 
+    glColor3f(0, 0, 0);
+    glTranslatef(0.2, 1.1, 0);
+    glScalef(0.999, 1, 21.999);
+    if (wireframe) glutWireCube(0.1);
+    else glutSolidCube(0.1);
+    glPopMatrix();
+
+    // right rail
+    glPushMatrix();
+    glColor3f(0.3, 0.7, 0.5);
+    glTranslatef(3, 1, 0);
+    glScalef(1, 0.5, 4.5);
+    if (wireframe) glutWireCube(0.5);
+    else glutSolidCube(0.5);
+    glPopMatrix();
+
+    // rigth support
+    glPushMatrix(); 
+    glColor3f(0, 0, 0);
+    glTranslatef(2.8, 1.1, 0);
+    glScalef(0.999, 1, 21.999);
+    if (wireframe) glutWireCube(0.1);
+    else glutSolidCube(0.1);
+    glPopMatrix();
+
+    float gantZ = (0.75 * (std::clamp((float)frameCount/ 180.0f, 0.0f, 1.0f)));
+    float gantX = (-0.15 * (std::clamp((float)frameCount/ 180.0f, 0.0f, 1.0f)));
+    float head1;
+    float partY = 0;
+    if (frameCount >= 180 + 60) {
+        head1 = 0.2 + (-0.2 * (std::clamp((float)(frameCount - 240)/ 60.0f, 0.0f, 1.0f)));
+        partY = head1;
+    }
+    else if (frameCount >= 180) head1 = (-0.2 * (std::clamp((float)(frameCount - 180)/ 60.0f, 0.0f, 1.0f)));
+    else head1 = 0;
+
+
+
+    // centre movement (z movement)s
+    glPushMatrix();
+    glColor3f(0.4, 0.1, 0.4);
+    glTranslatef(1.5, 1.2, 0 + (0.75 * (std::clamp((float)frameCount/ 180.0f, 0.0f, 1.0f))));
+    
+    glScalef(6, 0.2, 0.2);
+    
+    if (wireframe) glutWireCube(0.5);
+    else glutSolidCube(0.5);
+
+
+    glPopMatrix();
+
+    glPushMatrix(); // gantry
+    glColor3f(0.4, 0.1, 0.1);
+    glTranslatef(1.5 + gantX, 1.2, gantZ);
+    if (wireframe) glutWireCube(0.5);
+    else glutSolidCube(0.5);
+
+    glPopMatrix();
+
+    glPushMatrix(); // head 1
+    glColor3f(0.9, 0.9, 0.9);
+    glTranslatef(1.5 - 0.15 + gantX, 1.45 + head1, gantZ);
+    glRotatef(90, 1, 0, 0);
+    if (wireframe) glutWireCylinder(0.05, 0.75,20, 20);
+    else glutSolidCylinder(0.05, 0.75, 20, 20);
+
+    glPopMatrix();
+
+    glPushMatrix(); // head 2
+    glColor3f(0.9, 0.9, 0.9);
+    glTranslatef(1.5 + 0.15 + gantX, 1.25, gantZ);
+    glRotatef(90, 1, 0, 0);
+    if (wireframe) glutWireCylinder(0.05, 0.75,20, 20);
+    else glutSolidCylinder(0.05, 0.75, 20, 20);
+
+    glPopMatrix();
+
+    glPushMatrix(); // CAPP 1
+
+    glColor3f(0.9, 0.9, 0.9);
+    glTranslatef(1.2, 0.5 + partY, 0.75); // position
+    glPushMatrix(); // top of cap
+    glRotatef(90, 1, 0, 0);
+    if (wireframe) glutWireCylinder(0.1, 0.2,20, 20);
+    else glutSolidCylinder(0.1, 0.2, 20, 5);
+    glPopMatrix();
+    glPushMatrix(); // bottom of cap
+    glColor3f(0, 0, 0);
+    glTranslatef(0, -0.2, 0);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex3f(0, 0, 0);
+    glVertex3f(0.1, 0, 0.1);
+    glVertex3f(-0.1, 0, 0.1);
+    glVertex3f(-0.15, 0, 0.05);
+    glVertex3f(-0.15, 0, -0.15);
+    glVertex3f(0.15, 0, -0.15);
+    glVertex3f(0.15, 0, 0.05);
+    glVertex3f(0.1, 0, 0.1);
+    
+    glEnd();
+    glPopMatrix();
+
+    //glTranslatef(1.5 + 0.15 + cos(frameCount * M_PI * 0.016), 1.25, sin(frameCount * M_PI * 0.016));
+    
+
+    glPopMatrix();
+
+
+    
+    glPopMatrix(); // final
+}
+
 //-- Display: --------------------------------------------------------------
 //-- This is the main display module containing function calls for generating
 //-- the scene.
@@ -221,7 +410,9 @@ void display()
     }
     else
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // GL_LINE = Wireframe;   GL_FILL = Solid
+    glEnable(GL_TEXTURE_2D);
 
+    glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -235,8 +426,10 @@ void display()
 
     glEnable(GL_LIGHTING); // Enable lighting when drawing the model
     drawModel();
-    drawConveyer();
+    //drawConveyer();
     drawPcb();
+    smtMachine();
+    strip();
     glFlush();
 }
 void cameraCalculator()
