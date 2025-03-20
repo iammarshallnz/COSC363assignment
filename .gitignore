@@ -1,2 +1,14 @@
 /Vec3.h
 /build/
+build/CMakeCache.txt
+.vscode/settings.json
+build/CMakeFiles/Factory.out.dir/Factory.cpp.obj
+build/.ninja_deps
+build/.ninja_log
+build/cmake_install.cmake
+build/CMakeCache.txt
+build/compile_commands.json
+build/CMakeFiles/CMakeConfigureLog.yaml
+build/CMakeFiles/InstallScripts.json
+build/CMakeFiles/TargetDirectories.txt
+build/CMakeFiles/Factory.out.dir/Factory.cpp.obj

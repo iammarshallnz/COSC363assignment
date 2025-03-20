@@ -151,6 +151,8 @@ void normal(int indx)
 }
 
 
+
+
 void drawConveyer()
 {
     glColor3f(1, 0.5, 0.5);
@@ -171,9 +173,25 @@ void drawConveyer()
 void drawPcb()
 {
     glColor3f(0.5, 1, 0.5);
-    glTranslatef(5, 1.1, 0);
+    
     glPushMatrix();
-    glTranslatef(-(frameCount * 0.016), 0, 0);
+    glTranslatef(0, 0.05, 0);
+    if (frameCount >= 120 + 60 + 60 + 60 +60 + 120)
+    {
+        glTranslatef(-2.5 + (-10 * std::clamp((float)(frameCount - (120 + 60 + 60 + 60 +60 + 120))/ 450, 0.0f, 1.0f)), 0, 0);
+    }
+    
+    else if (frameCount >= 120)
+    {
+        glTranslatef(-2.5, 0, 0);
+    } 
+    else
+    {
+        glTranslatef(-2.5 * (std::clamp((float)(frameCount)/ 120, 0.0f, 1.0f)), 0, 0);
+    }
+    
+    
+    
     glScalef(1, 0.1, 1);
     if (wireframe)
     {
@@ -192,7 +210,20 @@ void drawModel()
 
     glPushMatrix();
     glTranslatef(5, 1.15, 0);
-    glTranslatef(-(frameCount * 0.016), 0, 0);
+    if (frameCount >= 120 + 60 + 60 + 60 +60 + 120)
+    {
+        glTranslatef(-2.5 + (-10 * std::clamp((float)(frameCount - (120 + 60 + 60 + 60 +60 + 120))/ 450, 0.0f, 1.0f)), 0, 0);
+    }
+    
+    else if (frameCount >= 120)
+    {
+        glTranslatef(-2.5, 0, 0);
+    } 
+    else
+    {
+        glTranslatef(-2.5 * (std::clamp((float)(frameCount)/ 120, 0.0f, 1.0f)), 0, 0);
+    }
+    
     glScalef(0.1, 0.1, 0.1);
     for (int indx = 0; indx < nface; indx++)
     { // draw each face
@@ -221,22 +252,24 @@ void loadTexture() {
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	//Set texture parameters
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	
 	
-	glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+	glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
 }
 void strip()
 {
         // TODO, TEXTURE THE STIP 
-    glColor3f(0.5, 0.5, 1);
-    glPushMatrix();
-    glTranslatef(-10, 0, -0.5); // move half in 
-    glBegin(GL_TRIANGLE_STRIP);
+    glColor3f(1, 1, 1);
     glBindTexture(GL_TEXTURE_2D, txId[0]);
+    glNormal3f(0, 1, 0);
+    glPushMatrix();
+    glTranslatef(0, 0, 0); // move half in 
+    glBegin(GL_QUAD_STRIP);
+    
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i <= 10; i++) // 1 extra
     {   
-        
+        glTexCoord2f(0, (float)i/2 + ((float)frameCount / 120)); /// todo 
         glVertex3f(i, 0, 1);
-        
+        glTexCoord2f(1, (float)i/2 + ((float)frameCount / 120));
         glVertex3f(i, 0, 0);
         
         
@@ -244,21 +277,25 @@ void strip()
     for (int x = 0; x < 21; x++)
     {   
         // right side
-        
+        glTexCoord2f(0, (float)(x * 0.1 * M_PI_2)/20 + ((float)frameCount / 120));
         glVertex3f(10 + 0.1 * sin((x * 0.05) * M_PI), 0.1 *cos((x * 0.05) * M_PI) - 0.1, 1);
+        glTexCoord2f(1, (float)(x * 0.1 * M_PI_2)/20 + ((float)frameCount / 120));
         glVertex3f(10 + 0.1 * sin((x * 0.05) * M_PI), 0.1 *cos((x * 0.05) * M_PI) - 0.1, 0);
-        // Radius is 1, diam is 2 
+        // Radius is .1, diam is .2 
     }
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i <= 10; i++) // 1 extra 
     {
+        glTexCoord2f(0, (float)i/2 + (0.1 * M_PI_2) + ((float)frameCount / 120));
         glVertex3f(10 - i, -0.2, 1);
+        glTexCoord2f(1, (float)i/2 + (0.1 * M_PI_2) + ((float)frameCount / 120));
         glVertex3f(10 - i, -0.2, 0);
     }
 
     for (int x = 0; x < 21; x++){   
         // left side
-        
+        glTexCoord2f(0, (float)((x * 0.1 * M_PI_2))/20 - (0.1 * M_PI_2)+ ((float)frameCount / 120));
         glVertex3f(-0.1 * sin((x * 0.05) * M_PI), -0.1 *cos((x * 0.05) * M_PI) - 0.1, 1);
+        glTexCoord2f(1, (float)(x * 0.1 * M_PI_2)/20 - (0.1 * M_PI_2) + ((float)frameCount / 120));
         glVertex3f(-0.1 * sin((x * 0.05) * M_PI), -0.1 *cos((x * 0.05) * M_PI) - 0.1, 0);
         // Radius is 1, diam is 2 
     }
@@ -272,7 +309,7 @@ void smtMachine(){
     
     glPushMatrix(); // global
     
-    glTranslatef(0, 1, 0);
+    glTranslatef(-4, -0, 0);
 
     //left rail
     glPushMatrix(); 
@@ -309,23 +346,81 @@ void smtMachine(){
     else glutSolidCube(0.1);
     glPopMatrix();
 
-    float gantZ = (0.75 * (std::clamp((float)frameCount/ 180.0f, 0.0f, 1.0f)));
-    float gantX = (-0.15 * (std::clamp((float)frameCount/ 180.0f, 0.0f, 1.0f)));
+    float gantZ; 
+    float gantX;
     float head1;
-    float partY = 0;
-    if (frameCount >= 180 + 60) {
-        head1 = 0.2 + (-0.2 * (std::clamp((float)(frameCount - 240)/ 60.0f, 0.0f, 1.0f)));
-        partY = head1;
+    float partY;
+    float partX;
+    float partZ;
+    float offset;
+    if (frameCount >= 120 + 60 + 60 + 60 +60 + 120){
+
+        offset = 120 + 60 + 60 + 60 + 60 + 120;
+        gantX = 0;
+        gantZ = 0;
+        partY = -0.1999 ; /// LITTLE BIT UP FOR CLASHING 
+        head1 = -0.4 + (0.2 * (std::clamp((float)(frameCount- offset)/ 60.0f, 0.0f, 1.0f))); // 
+        partX = 0.15 + (-10 * std::clamp((float)(frameCount - (120 + 60 + 60 + 60 +60 + 120))/ 450, 0.0f, 1.0f));
+        partZ = -0.75;
+
+
+
     }
-    else if (frameCount >= 180) head1 = (-0.2 * (std::clamp((float)(frameCount - 180)/ 60.0f, 0.0f, 1.0f)));
-    else head1 = 0;
+
+
+    else if (frameCount >= 120 + 60 + 60 + 60 + 120) {
+        offset = 120 + 60 + 60 + 60 + 120;
+        gantX = 0;
+        gantZ = 0;
+        partY = 0.2 + (-0.4 * (std::clamp((float)(frameCount- offset)/ 60.0f, 0.0f, 1.0f)));
+        head1 = (-0.4 * (std::clamp((float)(frameCount- offset)/ 60.0f, 0.0f, 1.0f))); // 
+        partX = 0.15;
+        partZ = -0.75;
+
+    }
+    else if (frameCount >= 120 + 60 + 60 + 120) { // move centre 
+        offset = 120 + 60 + 60 + 120;
+        head1 = -0.001; // hide clashing 
+        partY = 0.2;
+        gantZ = (0.75) + (-0.75 * (std::clamp((float)(frameCount - offset)/ 60.0f, 0.0f, 1.0f)));
+        gantX = (-0.15) + (0.15 * (std::clamp((float)(frameCount- offset)/ 60.0f, 0.0f, 1.0f)));
+        partX = (0.15 * (std::clamp((float)(frameCount - offset)/ 60.0f, 0.0f, 1.0f)));
+        partZ = (-0.75 * (std::clamp((float)(frameCount- offset)/ 60.0f, 0.0f, 1.0f)));
+    }
+    else if (frameCount >= 120 + 60 + 120) { // head up
+        offset = 120 + 60 + 120;
+        head1 = (-0.2 * (1 - std::clamp( (float)(frameCount - offset)/ 60.0f, 0.0f, 1.0f)));
+        partY = 0.2 * std::clamp( (float)(frameCount - offset)/ 60.0f, 0.0f, 1.0f);
+        gantZ = (0.75);
+        gantX = (-0.15);
+    }
+    else if (frameCount >= 120 + 120) { // head down
+        offset = 120 + 120;
+        partY = 0;
+        head1 = (-0.2 * (std::clamp((float)(frameCount - offset)/ 60.0f, 0.0f, 1.0f)));
+        gantZ = (0.75);
+        gantX = (-0.15);
+    
+    }
+    else if (frameCount >= 120) { // move to part
+        offset = 120;
+        head1 = 0;
+        partY = 0;
+        gantZ = (0.75 * (std::clamp((float)(frameCount - offset)/ 120.0f, 0.0f, 1.0f)));
+        gantX = (-0.15 * (std::clamp((float)(frameCount - offset)/ 120.0f, 0.0f, 1.0f)));
+    } else { // wait for board 
+        head1 = 0;
+        partY = 0;
+        gantZ = 0;
+        gantX = 0;
+    }
 
 
 
-    // centre movement (z movement)s
+    // centre bar movement (z movement)s
     glPushMatrix();
     glColor3f(0.4, 0.1, 0.4);
-    glTranslatef(1.5, 1.2, 0 + (0.75 * (std::clamp((float)frameCount/ 180.0f, 0.0f, 1.0f))));
+    glTranslatef(1.5, 1.2, 0 + gantZ);
     
     glScalef(6, 0.2, 0.2);
     
@@ -364,7 +459,7 @@ void smtMachine(){
     glPushMatrix(); // CAPP 1
 
     glColor3f(0.9, 0.9, 0.9);
-    glTranslatef(1.2, 0.5 + partY, 0.75); // position
+    glTranslatef(1.2 + partX, 0.5 + partY, 0.75 + partZ); // position
     glPushMatrix(); // top of cap
     glRotatef(90, 1, 0, 0);
     if (wireframe) glutWireCylinder(0.1, 0.2,20, 20);
@@ -389,7 +484,7 @@ void smtMachine(){
     //glTranslatef(1.5 + 0.15 + cos(frameCount * M_PI * 0.016), 1.25, sin(frameCount * M_PI * 0.016));
     
 
-    glPopMatrix();
+    glPopMatrix(); // cap 1
 
 
     
@@ -426,10 +521,18 @@ void display()
 
     glEnable(GL_LIGHTING); // Enable lighting when drawing the model
     drawModel();
-    //drawConveyer();
     drawPcb();
     smtMachine();
+
+    glPushMatrix();
+    glTranslatef(-15.25, 0, -0.5);
     strip();
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(-5, 0, -0.5);
+    strip();
+    glPopMatrix();
     glFlush();
 }
 void cameraCalculator()
@@ -502,9 +605,13 @@ void initialize()
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
+    glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0);
+
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    loadTexture();
     gluPerspective(60., 1., 0.1, 100.);
 }
 
