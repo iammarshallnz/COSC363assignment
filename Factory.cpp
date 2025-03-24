@@ -1,8 +1,8 @@
 //  ========================================================================
-//  COSC363: Computer Graphics (2025);  University of Canterbury.
+//  COSC363: Computer Graphics (2025);  MARSHALL INCH.
 //
-//  FILE NAME: Humanoid.cpp
-//  See Lab02.pdf for details
+//  FILE NAME: Factory.cpp
+//  Note: assignment
 //  ========================================================================
 
 #include <iostream>
@@ -13,9 +13,22 @@
 #include <math.h>
 #include <list>
 #include "loadTGA.h"
+#include "loadBMP.h"
 using namespace std;
 
 #define GL_CLAMP_TO_EDGE 0x812F // Not defined in my version of OpenGL 
+
+struct particle	{	//A particle 
+	int t;			//Life time  (0 - 200)
+	float col;		//Color  (0 - 1)
+	float size;		//Size   (5 - 25)
+	float pos[3];	//Position
+	float vel[3];	//Velocity
+};
+
+
+// Partciles
+list<particle> parList;	//List of particles
 
 // Board list
 
@@ -24,7 +37,7 @@ list<int> boardList = {0};
 //-- Globals ---------------------------------------------------------------
 
 
-GLuint txId[8]; // Texture ids
+GLuint txId[9]; // Texture ids
 
 // mesh data
 float *x, *y, *z;            // vertex coordinates
@@ -84,35 +97,13 @@ bool conv3Pause = true;
 bool conv2Pause = true;
 bool conv1Pause = true;
 
-void centerMouse()
-{
-    glutWarpPointer(windowWidth / 2, windowHeight / 2);
-}
-
-//-- Draws a grid of lines on the floor plane ------------------------------
-void drawFloor()
-{
-    glColor3f(0., 0.5, 0.); // Floor colour
-    glBegin(GL_LINES);      // 0,0 line
-    glVertex3f(0, 0., 0.);
-    glVertex3f(0, 10., 0.);
-    for (float i = -50.; i <= 50.; i++)
-    {
-        glBegin(GL_LINES); // A set of grid lines on the xz-plane
-        glVertex3f(-50., 0., i);
-        glVertex3f(50., 0., i);
-        glVertex3f(i, 0., -50.);
-        glVertex3f(i, 0., 50.);
-        glEnd();
-    }
-}
 
 
 
 
 void loadTexture()
 {
-    glGenTextures(8, txId); // Create 8 texture ids
+    glGenTextures(9, txId); // Create 8 texture ids
 
     glBindTexture(GL_TEXTURE_2D, txId[0]); //
 
@@ -190,8 +181,109 @@ void loadTexture()
 
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
+
+    
+	glBindTexture(GL_TEXTURE_2D, txId[8]);
+	loadBMP("../Glow.bmp");
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
     glDisable(GL_TEXTURE_2D);
 }
+
+
+// from lab
+void drawParticle(float col, float size, float px, float py, float pz) {
+	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glColor3f(col, col, col);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, txId[8]);
+
+	glPushMatrix();
+		glTranslatef(px, py, pz);
+		glScalef(size, size, size);
+
+		glBegin(GL_QUADS);
+			//A quad on the xy-plane
+			glTexCoord2f(0, 0);
+			glVertex3f(-0.5, -0.5, 0);
+			glTexCoord2f(1, 0);
+			glVertex3f(0.5, -0.5, 0);
+			glTexCoord2f(1, 1);
+			glVertex3f(0.5, 0.5, 0);
+			glTexCoord2f(0, 1);
+			glVertex3f(-0.5, 0.5, 0);
+
+			//A quad on the yz-plane
+			glTexCoord2f(0, 0);
+			glVertex3f(0, -0.5, -0.5);
+			glTexCoord2f(1, 0);
+			glVertex3f(0, 0.5, -0.5);
+			glTexCoord2f(1, 1);
+			glVertex3f(0, 0.5, 0.5);
+			glTexCoord2f(0, 1);
+			glVertex3f(0, -0.5, 0.5);
+		glEnd();
+	glPopMatrix();
+
+	glDisable(GL_BLEND);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
+}
+// from lab
+void newParticle() {
+	particle p = { 0 };
+
+	p.pos[0] = 0.5 * (rand() / (float)RAND_MAX) - 0.25 - 5;
+	p.pos[1] = 2;	//This point is at the top end of the smoke stack
+	p.pos[2] = 0.5 * (rand() / (float)RAND_MAX) - 0.25;
+
+	p.vel[0] = 0.5 * (rand() / (float)RAND_MAX) - 0.25;
+	p.vel[1] = 0.0080;
+	p.vel[2] = 0.5 * (rand() / (float)RAND_MAX) - 0.25;
+
+	p.col = 1;
+	p.size = 0.2;
+
+	parList.push_back(p);
+}
+
+//from lab
+void updateQueue() {
+	const int LIFETIME = 600;
+	list<particle>::iterator it;
+	particle p;
+	int tval;
+	float delta;
+
+	//Remove particles that have passed lifetime
+	if (!parList.empty()) {
+		p = parList.front();
+		if (p.t > LIFETIME) parList.pop_front();
+	}
+
+	for (it = parList.begin(); it != parList.end(); it++) {
+		tval = it->t;
+		it->t = tval + 1;
+		delta = (float)tval / (float)LIFETIME;
+		
+		// for (int i = 0; i < 3; i++){
+		// 	(it->pos[i]) += it->vel[i];
+		
+		// }
+        (it->pos[0]) =it->pos[1] * 0.1 * sin(it->pos[1]* M_PI * 1) + it->vel[0] - 5;
+        (it->pos[1]) += it->vel[1];
+        (it->pos[2]) =it->pos[1] * 0.1 * cos(it->pos[1]* M_PI * 1) + it->vel[2];
+
+		it->size = delta * 0.5 + 0.2;	// 
+		it->col = 1 - delta;		// 
+	}
+
+	   //Create a new particle every sec.
+}
+//  black box at start
 void startingWall()
 {
     glColor3f(0, 0, 0);
@@ -209,7 +301,7 @@ void startingWall()
 
     glPopMatrix();
 }
-
+// black box at end 
 void endingWall()
 {
     glColor3f(0, 0, 0);
@@ -228,16 +320,16 @@ void endingWall()
     glPopMatrix();
 }
 
-
-void strip(float speed, int convCount, bool pause)
+// conveyor 
+void conveyor(float speed, int convCount)
 {
-    // TODO, TEXTURE THE STIP
+    // 
     glColor3f(1, 1, 1);
     glBindTexture(GL_TEXTURE_2D, txId[0]);
     glEnable(GL_TEXTURE_2D);
-    glNormal3f(0, 1, 0);
+    glNormal3f(0, 1, 0);// up
     glPushMatrix();
-    glTranslatef(0, 0, 0); // move half in
+    
     glBegin(GL_QUAD_STRIP);
 
     for (int i = 0; i <= 5; i++) // 1 extra
@@ -279,8 +371,8 @@ void strip(float speed, int convCount, bool pause)
     glDisable(GL_TEXTURE_2D);
 }
 float dynam(float x){
-    // goes from -10.5 t0 -16 in oven
-    
+    // goes from -12.5 to -15.5 in oven
+    // 0- 2
     if (x < 12.5) return 0;
     else if (x < 15.5) return (float)(x-12.5) * 2/3;
     else return 2;
@@ -289,13 +381,14 @@ float dynam(float x){
 
 void paste(float pcbX)
 {
-
+    // an paste object 
     glPushMatrix();
     glColor3f(0.5, 0.5, 0.5);
     glTranslatef(0, 0.05, 0);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, txId[1]);
     glPushMatrix();
+    // QUADS 
     // left side 
     
     for (int y = 0; y < 5; y++)
@@ -388,7 +481,8 @@ void paste(float pcbX)
 }
 void drawPcb(float pcbX)
 {
-
+    // pcb is a cube scalled down
+    // create each paste object and give ofsets 
     glPushMatrix();
 
     glTranslatef(9 + pcbX, 0.05, 0); // past cover starting
@@ -398,7 +492,7 @@ void drawPcb(float pcbX)
     glTranslatef(-0.166, 0.05, -0.18); // line up bottom cap paste
     glRotatef(-90, 0, 1, 0);
     glScalef(.02, 0.02, .033);
-    paste(pcbX);
+    paste(pcbX-0.166);
     glPopMatrix();
 
     glPushMatrix();
@@ -406,7 +500,7 @@ void drawPcb(float pcbX)
     glTranslatef(-0.134, 0.05, 0.18); // line up TOP cap paste
     glRotatef(90, 0, 1, 0);
     glScalef(.02, 0.02, .033);
-    paste(pcbX);
+    paste(pcbX-0.134);
     glPopMatrix();
 
 
@@ -423,7 +517,7 @@ void drawPcb(float pcbX)
     glTranslatef(0.3, 0.05, -0.301); // line up top resistor paste
     glRotatef(180, 0, 1, 0);
     glScalef(0.02, 0.02, .105);
-    paste(pcbX);
+    paste(pcbX + 0.3);
     glPopMatrix();
 
 
@@ -442,7 +536,8 @@ void drawPcb(float pcbX)
     glPopMatrix();
 }
 void machineRails()
-{
+{   
+    // solid objects 
     // left rail
     glPushMatrix();
     glColor3f(0.3, 0.7, 0.5);
@@ -528,51 +623,52 @@ void machineRails()
     glPopMatrix();
 }
 void machineCenter(){
-// centre bar movement (z movement)s
-glPushMatrix();
-glColor3f(0.4, 0.1, 0.4);
-glTranslatef(1.5, 1.2, 0 + gantZ);
+    // centre bar movement (z movement)s
+    // global 
+    glPushMatrix();
+    glColor3f(0.4, 0.1, 0.4);
+    glTranslatef(1.5, 1.2, 0 + gantZ);
 
-glScalef(6, 0.2, 0.2);
+    glScalef(6, 0.2, 0.2);
 
-if (wireframe)
-    glutWireCube(0.5);
-else
-    glutSolidCube(0.5);
+    if (wireframe)
+        glutWireCube(0.5);
+    else
+        glutSolidCube(0.5);
 
-glPopMatrix();
+    glPopMatrix();
 
-glPushMatrix(); // gantry
-glColor3f(0.4, 0.1, 0.1);
-glTranslatef(1.5 + gantX, 1.2, gantZ);
-if (wireframe)
-    glutWireCube(0.5);
-else
-    glutSolidCube(0.5);
+    glPushMatrix(); // gantry
+    glColor3f(0.4, 0.1, 0.1);
+    glTranslatef(1.5 + gantX, 1.2, gantZ);
+    if (wireframe)
+        glutWireCube(0.5);
+    else
+        glutSolidCube(0.5);
 
-glPopMatrix();
+    glPopMatrix();
 
-glPushMatrix(); // head 1
-glColor3f(0.9, 0.9, 0.9);
-glTranslatef(1.5 - 0.15 + gantX, 1.4499 + head1, gantZ);
-glRotatef(90, 1, 0, 0);
-if (wireframe)
-    glutWireCylinder(0.05, 0.75, 20, 20);
-else
-    glutSolidCylinder(0.05, 0.75, 20, 20);
+    glPushMatrix(); // head 1
+    glColor3f(0.9, 0.9, 0.9);
+    glTranslatef(1.5 - 0.15 + gantX, 1.4499 + head1, gantZ);
+    glRotatef(90, 1, 0, 0);
+    if (wireframe)
+        glutWireCylinder(0.05, 0.75, 20, 20);
+    else
+        glutSolidCylinder(0.05, 0.75, 20, 20);
 
-glPopMatrix();
+    glPopMatrix();
 
-glPushMatrix(); // head 2
-glColor3f(0.9, 0.9, 0.9);
-glTranslatef(1.5 + 0.15 + gantX, 1.4499 + head2, gantZ);
-glRotatef(90, 1, 0, 0);
-if (wireframe)
-    glutWireCylinder(0.05, 0.75, 20, 20);
-else
-    glutSolidCylinder(0.05, 0.75, 20, 20);
+    glPushMatrix(); // head 2
+    glColor3f(0.9, 0.9, 0.9);
+    glTranslatef(1.5 + 0.15 + gantX, 1.4499 + head2, gantZ);
+    glRotatef(90, 1, 0, 0);
+    if (wireframe)
+        glutWireCylinder(0.05, 0.75, 20, 20);
+    else
+        glutSolidCylinder(0.05, 0.75, 20, 20);
 
-glPopMatrix();
+    glPopMatrix();
 
 
 
@@ -719,29 +815,28 @@ void ceilingLight()
     for (int i = 0; i < N; i++)
     { // Initialize data everytime the frame is refreshed
 
-        float x = i / 50.f;
-        float y = -2 * (x * x);
-        float dx = -x; // Derivative for normal calculation
+        float x = i / 50.f; // 25/50 
+        float y = -2 * (x * x); /// negatve parabloid 
+        float dx = -x; // derivative for normal calculation
         float dy = 2.0f;
-        float len = sqrt(dx * dx + dy * dy);
         vx[i] = x;
         vy[i] = y;
         vz[i] = 0;
-        nx[i] = dx / len;
-        ny[i] = dy / len;
+        nx[i] = dx;
+        ny[i] = dy;
         nz[i] = 0;
     }
 
     glPushMatrix();      
                    // global
     glRotatef(frameCount / 0.5f, 0, 1, 0); // Rotate the light fixture
-    glTranslatef(0, 6, 0);                // Position the light fixture
-    glRotatef(10, 1, 0, 0);               // Rotate the light fixture
-    glTranslatef(0, -3.0, 0);             // Position the light fixture
+    glTranslatef(0, 6, 0);                // move up 6
+    glRotatef(10, 1, 0, 0);               // rotate 10 deg
+    glTranslatef(0, -3.0, 0);             // move down 3
 
     glPushMatrix(); // parabolic
 
-    glColor3f(0.8, 0.8, 0.8); // Light gray color
+    glColor3f(0.8, 0.8, 0.8); // gray colour
 
     for (int j = 0; j < nSlices; j++)
     {
@@ -760,10 +855,10 @@ void ceilingLight()
         for (int i = 0; i < N; i++)
         {
             glNormal3f(nx[i], ny[i], nz[i]);
-            // glTexCoord2f((float)j/nSlices, (float)i/(N- 1));
+            
             glVertex3f(vx[i], vy[i], vz[i]);
             glNormal3f(mx[i], my[i], mz[i]);
-            // glTexCoord2f((float)(j+1)/nSlices, (float)i/(N- 1));
+            
             glVertex3f(wx[i], wy[i], wz[i]);
         }
         glEnd();
@@ -831,6 +926,22 @@ void oven()
 
     glPopMatrix();
 
+    glPushMatrix(); // exhaust
+    glColor3f(0.2, 0.2, 0.2);
+    glTranslatef(-5, 2, 0);
+    glRotatef(90, 1, 0, 0);
+
+    if (wireframe)
+        glutWireCylinder(0.5, 0.2, 20, 4);
+    else
+        glutSolidCylinder(0.5, 0.2, 20, 4);
+
+    glPopMatrix();
+
+
+
+
+
     // ELEMENTS
     glPushMatrix();
     GLfloat spotCutoff[] = {30.0f};
@@ -862,6 +973,7 @@ void oven()
 
     glPopMatrix();
     glPushMatrix();
+    // chimney 
     glColor3f(0.8, 0.1, 0.1);
     glTranslatef(-6.5, 1.25, -0.25);
     glRotatef(90, 0, 1, 0);
@@ -876,8 +988,11 @@ void oven()
 }
 void smtMachine(int adjust)
 {
-    
-
+    // called by each board 
+    // large if statements that are called at certain frames 
+    // basically a state machine.
+    // every thing in here is replicated per board e.g re generate reistor but not the actual machine
+    // which uses adjustable globals 
     float conv4Speed = 1.9;
     float conv3Speed = 0.8;
     float conv2Speed = 1.3;
@@ -901,6 +1016,7 @@ void smtMachine(int adjust)
 
     float offset = adjust;
     float rotateRes = 0;
+
     if (frameCount - adjust>= 120 + 60 + 60 + 120 + 120 + 120 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 360 + 60)
     { // MOVE TO DEATH BOX 
         float moveX = 7.5;
@@ -933,6 +1049,9 @@ void smtMachine(int adjust)
     else if (frameCount - adjust>= 120 + 60 + 60 + 120 + 120 + 120 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60)
     { // PCB MOVE into oven untill end 360 frames in oven,
         float moveX = 5.5;
+
+        if (frameCount % 5 == 0) newParticle();// generAte smoke in oven
+
 
         offset += 120 + 60 + 60 + 120 + 120 + 120 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60;
         if (frameCount < offset + 360)
@@ -1130,16 +1249,15 @@ void smtMachine(int adjust)
         offset += 120 + 60 + 60 + 120 + 120 + 120;
         head1 = -0.001; // hide clashing
 
-        // gantZ = (0.75) + (-0.75 * (std::clamp((float)(frameCount - offset) / 60.0f, 0.0f, 1.0f)));
         gantZ = (0.75);
-        // gantX = (-0.15) + (0.15 * (std::clamp((float)(frameCount - offset) / 60.0f, 0.0f, 1.0f)));
+       
         gantX = (-0.15) + (0.2 * (std::clamp((float)(frameCount - offset) / 60.0f, 0.0f, 1.0f)));
-        // capX = (0.15 * (std::clamp((float)(frameCount - offset) / 60.0f, 0.0f, 1.0f)));
+        
         capX = (0.2 * (std::clamp((float)(frameCount - offset) / 60.0f, 0.0f, 1.0f)));
 
         capY = 0.2;
         capZ = 0;
-        // capZ = (-0.75 * (std::clamp((float)(frameCount - offset) / 60.0f, 0.0f, 1.0f)));
+        
     }
     else if (frameCount - adjust>= 120 + 60 + 120 + 120 + 120)
     { // head up
@@ -1197,7 +1315,7 @@ void smtMachine(int adjust)
     else
     { // wait for board
         conv1Pause = false;
-        conv1Speed = 2;
+        
         head1 = 0;
         head2 = 0;
         pcbX = -5.5 * (std::clamp((float)(frameCount - offset) / 150, 0.0f, 1.0f));
@@ -1210,20 +1328,20 @@ void smtMachine(int adjust)
     // CONVEYORS
     glPushMatrix(); // conveyer 4
     glTranslatef(-13, 0, -0.5);
-    strip(conv4Speed, conv4Count, conv4Pause);
+    conveyor(conv4Speed, conv4Count);
     glPopMatrix();
     glPushMatrix(); // conveyer 3
     glTranslatef(-7.75, 0, -0.5);
-    strip(conv3Speed, conv3Count, conv3Pause);
+    conveyor(conv3Speed, conv3Count);
     glPopMatrix();
 
     glPushMatrix(); // conveyer 2
     glTranslatef(-2.5, 0, -0.5);
-    strip(conv2Speed, conv2Count, conv2Pause);
+    conveyor(conv2Speed, conv2Count);
     glPopMatrix();
     glPushMatrix(); // conveyer 1
     glTranslatef(2.75, 0, -0.5);
-    strip(conv1Speed, conv1Count, conv1Pause);
+    conveyor(conv1Speed, conv1Count);
     glPopMatrix();
 
     // OVEN
@@ -1315,9 +1433,7 @@ void skybox() {
     glDisable(GL_TEXTURE_2D);
 }
 
-//-- Display: --------------------------------------------------------------
-//-- This is the main display module containing function calls for generating
-//-- the scene.
+
 void display()
 {
     float lpos[4] = {0., 100., 0., 1.}; // light's position
@@ -1334,26 +1450,29 @@ void display()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glRotatef(cam_x_angle, 1, 0., 0.); // Rotate the scene about the y-axis
+    // roate every thing 
+    glRotatef(cam_x_angle, 1, 0., 0.); 
     glRotatef(cam_y_angle, 0., 1., 0.);
-    gluLookAt(cam_x, cam_y, cam_z, cam_x, cam_y, cam_z - 1, 0., 1., 0.);
+    gluLookAt(cam_x, cam_y, cam_z, cam_x, cam_y, cam_z - 1, 0., 1., 0.); // look in front. 
+    
     float gray[]  = {0.4,0.4,0.4, 1};
+
     glLightfv(GL_LIGHT0, GL_DIFFUSE, gray);
     glLightfv(GL_LIGHT0, GL_POSITION, lpos); // Set light position
     glLightfv(GL_LIGHT4, GL_DIFFUSE, white);
     glLightfv(GL_LIGHT4, GL_POSITION, lpos); // Set light position
-    glEnable(GL_LIGHT4);
+
+    glEnable(GL_LIGHT4); // lighting for skybox
+    // sky box 
     glPushMatrix();
-    glTranslatef(cam_x, cam_y, cam_z); // Move with camera
-    glScalef(10000, 10000, 10000);     // Much larger scale
+    glTranslatef(cam_x, cam_y, cam_z); 
+    glScalef(10000, 10000, 10000);     
     skybox();
     glPopMatrix();
+
     glDisable(GL_LIGHT4);
 
-    // glDisable(GL_LIGHTING); // Disable lighting when drawing floor.
-    // drawFloor();
-
-    // glEnable(GL_LIGHTING); // Enable lighting when drawing the model
+    
     startingWall();
     endingWall();
     ceilingLight();
@@ -1362,6 +1481,7 @@ void display()
     
     machineCenter();    
     glPopMatrix();
+    // BOARD LIST
     if (frameCount - boardList.front() > 120 + 60 + 60 + 120 + 120 + 120 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 60 + 360 + 360)
     {
         boardList.pop_front();
@@ -1375,25 +1495,33 @@ void display()
         smtMachine(i);
     }
     
-
+    // PARTICLE LIST 
+    list<particle>::iterator it;
+	for (it = parList.begin(); it != parList.end(); it++) {
+		drawParticle(it->col, it->size, it->pos[0], it->pos[1], it->pos[2]);
+	}
     
-    glFlush();
+    glutSwapBuffers(); 
+}
+void centerMouse()
+{
+    glutWarpPointer(windowWidth / 2, windowHeight / 2);
 }
 void cameraCalculator()
 {
 
-    // Convert angles to radians
+    
     float yAngleRad = cam_y_angle * M_PI / 180.0f;
     float xAngleRad = cam_x_angle * M_PI / 180.0f;
 
-    // Calculate movement vectors based on camera angle
+    
     float forwardX = sin(yAngleRad) * cos(xAngleRad);
     float forwardY = -sin(xAngleRad);
     float forwardZ = -cos(yAngleRad) * cos(xAngleRad);
 
-    // Right vector (perpendicular to forward vector)
-    float rightX = cos(yAngleRad);
-    float rightZ = sin(yAngleRad);
+   
+    float X = cos(yAngleRad);
+    float Z = sin(yAngleRad);
 
     // Movement speed
     float speed = 0.1f;
@@ -1413,13 +1541,13 @@ void cameraCalculator()
     }
     if (keyPress & 0b01000000)
     { // A
-        cam_x -= rightX * speed;
-        cam_z -= rightZ * speed;
+        cam_x -= X * speed;
+        cam_z -= Z * speed;
     }
     if (keyPress & 0b00010000)
     { // D
-        cam_x += rightX * speed;
-        cam_z += rightZ * speed;
+        cam_x += X * speed;
+        cam_z += Z * speed;
     }
 }
 void timer(int value)
@@ -1427,13 +1555,17 @@ void timer(int value)
     // always do the camera calculation for paused movement
     cameraCalculator();
     if (pause)
-    {
+    {   
+
         glutTimerFunc(16, timer, 0);
         glutPostRedisplay();
         return;
     }
 
     frameCount++;
+
+    
+
     if (!conv1Pause)
         conv1Count++;
     if (!conv2Pause)
@@ -1442,6 +1574,7 @@ void timer(int value)
         conv3Count++;
     if (!conv4Pause)
         conv4Count++;
+    updateQueue(); // PArticle 
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }
@@ -1468,13 +1601,12 @@ void initialize()
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
-    // glEnable(GL_ALPHA_TEST);
-    // glAlphaFunc(GL_GREATER, 0);
-
+    
+    glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     loadTexture();
-    gluPerspective(80., 1.6, 0.1, 20000.); // Increased far clipping plane
+    gluPerspective(80., 1.6, 0.01, 20000.); // Increased far clipping plane
 }
 
 // detect key press
@@ -1495,6 +1627,7 @@ void keyboardUp(unsigned char key, int x, int y)
 void keyboard(unsigned char key, int x, int y)
 { // "key down"
     // using bits register key press
+    // bit shifting thing
     const float step = 0.1;
     if ('w' == key)
         keyPress |= 0b10000000;
@@ -1515,6 +1648,8 @@ void keyboard(unsigned char key, int x, int y)
     {
         wireframe = !wireframe;
     }
+    if (27 == key)
+        exit(0);
     glutPostRedisplay();
 }
 
@@ -1523,37 +1658,35 @@ void keyboard(unsigned char key, int x, int y)
 void special(int key, int x, int y)
 { // special key event
     if (key == GLUT_KEY_LEFT)
-        cam_x_angle--;
-    else if (key == GLUT_KEY_RIGHT)
-        cam_x_angle++;
-    else if (key == GLUT_KEY_UP)
-        cam_y_angle++;
-    else if (key == GLUT_KEY_DOWN)
         cam_y_angle--;
+    else if (key == GLUT_KEY_RIGHT)
+        cam_y_angle++;
+    else if (key == GLUT_KEY_UP)
+        cam_x_angle--;
+    else if (key == GLUT_KEY_DOWN)
+        cam_x_angle++;
     if (key == GLUT_KEY_F1)
         exit(0);
 
     glutPostRedisplay();
 }
 
-// Replace the mouseHandeller function
+// does mouise handeling 
 void mouseHandeller(int x, int y)
 {
 
-    // Calculate change in mouse position
-    float deltaX = (x - windowWidth / 2) * mouseSensitivity;
-    float deltaY = (y - windowHeight / 2) * mouseSensitivity;
-    // add to global angles
+    
+    float deltaX = (x - windowWidth / 2) * mouseSensitivity;// mouse pos change 
+    float deltaY = (y - windowHeight / 2) * mouseSensitivity;// 
+    
+    // increment globals
     cam_y_angle += deltaX;
     cam_x_angle += deltaY;
 
-    // Clamp vertical rotation to prevent over-rotation
-    if (cam_x_angle > 89.0f)
-        cam_x_angle = 89.0f;
-    if (cam_x_angle < -89.0f)
-        cam_x_angle = -89.0f;
-    // recentre the mouse
-    centerMouse();
+    cam_x_angle = std::clamp((float)cam_x_angle,-89.0f,89.0f); // clamp 
+    
+   
+    centerMouse(); // center 
 
     glutPostRedisplay();
 }
@@ -1565,13 +1698,13 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(windowWidth, windowHeight);
     glutInitWindowPosition(10, 10);
-    glutCreateWindow("Humanoid");
+    glutCreateWindow("Assignment");
     initialize();
-    glutTimerFunc(frameRate, timer, 0); // FPS
-    glutDisplayFunc(display);           // Display update
-    glutSpecialFunc(special);           // Special key event
-    glutKeyboardFunc(keyboard);         // Keyboard event
-    glutKeyboardUpFunc(keyboardUp);     // key up
+    glutTimerFunc(frameRate, timer, 0); 
+    glutDisplayFunc(display);           
+    glutSpecialFunc(special);           
+    glutKeyboardFunc(keyboard);         
+    glutKeyboardUpFunc(keyboardUp);     
     glutPassiveMotionFunc(mouseHandeller);
     glutMainLoop();
     return 0;
