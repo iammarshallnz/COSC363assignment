@@ -1,4 +1,4 @@
 A SMT factory built in openGl 2 
 ![alt text][logo]
 
-[logo]: https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 2"
+[logo]: Untitled%20video%20-%20Made%20with%20Clipchamp.gif "A factory gif"
